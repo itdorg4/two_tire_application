@@ -43,6 +43,7 @@ jobs:
             echo "No tests found, skipping coverage."
           fi
 
+          
       # TEMP DIAGNOSTIC: verify the SONAR_TOKEN the runner receives can
       # actually read this project. Prints only the token length and the
       # HTTP status / JSON body — never the token value itself.

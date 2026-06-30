@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -q -m 'Bump sonarqube-scan-action to v6 \\(security + Node 24\\) *)"
+      "Bash(git commit -q -m 'Bump sonarqube-scan-action to v6 \\(security + Node 24\\) *)",
+      "Bash(python3 -c \"import yaml; yaml.safe_load\\(open\\('.github/workflows/sonarqube.yml'\\)\\); print\\('YAML OK'\\)\")",
+      "Bash(git commit -q -m 'Wire app/DB secrets into CI and add integration test *)",
+      "Bash(GIT_SSH_COMMAND='ssh -o BatchMode=yes' gh repo view itdorg4/two_tire_application --json visibility,isPrivate)",
+      "Bash(git commit -q -m 'Hardcode confirmed sonar.projectKey, drop PROJECT_KEY secret *)",
+      "Bash(gh secret *)"
     ]
   }
 }
