@@ -1,0 +1,20 @@
+# Secrets / environment
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# SQLite database
+*.db
+
+# Test / coverage artifacts
+.coverage
+coverage.xml
+.pytest_cache/
+
+# OS / editor
+.DS_Store

@@ -1,0 +1,59 @@
+name: SonarQube Code Scan
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarqube:
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Disable shallow clone so SonarQube can assign issues to authors
+          # and compute accurate "new code" periods.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: app
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install coverage pytest
+
+      - name: Run tests with coverage
+        continue-on-error: true
+        run: |
+          if ls app/test_*.py app/tests 2>/dev/null; then
+            coverage run -m pytest app
+            coverage xml -o coverage.xml
+          else
+            echo "No tests found, skipping coverage."
+          fi
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      # Fail the pipeline if the project does not pass the Quality Gate.
+      # Requires the SonarQube webhook / report-task.txt produced above.
+      - name: SonarQube Quality Gate check
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
