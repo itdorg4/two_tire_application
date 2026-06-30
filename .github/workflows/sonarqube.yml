@@ -43,22 +43,19 @@ jobs:
             echo "No tests found, skipping coverage."
           fi
 
+      # Run the scan and block until the Quality Gate result is known.
+      # sonar.qualitygate.wait makes the scanner poll for the gate using the
+      # same auth as the analysis, so the job fails if the gate fails —
+      # without the separate quality-gate-action (which 403s on SonarCloud).
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           # SonarQube Cloud (SonarCloud) is always reached at this URL.
           SONAR_HOST_URL: https://sonarcloud.io
-
-      # Fail the pipeline if the project does not pass the Quality Gate.
-      # Requires the SonarQube webhook / report-task.txt produced above.
-      - name: SonarQube Quality Gate check
-        uses: SonarSource/sonarqube-quality-gate-action@v1
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          # SonarQube Cloud (SonarCloud) is always reached at this URL.
-          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true
 
   # ---------------------------------------------------------------------------
   # CI pipeline — runs only after the SonarQube scan + Quality Gate succeed.
