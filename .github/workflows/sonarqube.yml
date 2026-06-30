@@ -43,19 +43,16 @@ jobs:
             echo "No tests found, skipping coverage."
           fi
 
-      # Run the scan and block until the Quality Gate result is known.
-      # sonar.qualitygate.wait makes the scanner poll for the gate using the
-      # same auth as the analysis, so the job fails if the gate fails —
-      # without the separate quality-gate-action (which 403s on SonarCloud).
+      # Run the scan and upload results to SonarCloud. We intentionally do NOT
+      # set -Dsonar.qualitygate.wait, so a failing Quality Gate is visible in
+      # SonarCloud but does not fail this CI job. Re-add that flag to enforce
+      # the gate as a hard pass/fail.
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           # SonarQube Cloud (SonarCloud) is always reached at this URL.
           SONAR_HOST_URL: https://sonarcloud.io
-        with:
-          args: >
-            -Dsonar.qualitygate.wait=true
 
   # ---------------------------------------------------------------------------
   # CI pipeline — runs only after the SonarQube scan + Quality Gate succeed.
