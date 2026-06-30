@@ -43,25 +43,6 @@ jobs:
             echo "No tests found, skipping coverage."
           fi
 
-          
-      # TEMP DIAGNOSTIC: verify the SONAR_TOKEN the runner receives can
-      # actually read this project. Prints only the token length and the
-      # HTTP status / JSON body — never the token value itself.
-      - name: Diagnose SONAR_TOKEN (temporary)
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          echo "Token length seen by runner: ${#SONAR_TOKEN}"
-          echo "--- authentication/validate ---"
-          curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/authentication/validate"
-          echo
-          echo "--- qualitygates/project_status ---"
-          code=$(curl -s -o /tmp/qg.json -w "%{http_code}" -u "$SONAR_TOKEN:" \
-            "https://sonarcloud.io/api/qualitygates/project_status?projectKey=itdorg4_two_tire_application&organization=itdorg4")
-          echo "HTTP $code"
-          cat /tmp/qg.json
-          echo
-
       # Run the scan and block until the Quality Gate result is known.
       # sonar.qualitygate.wait makes the scanner poll for the gate using the
       # same auth as the analysis, so the job fails if the gate fails —
