@@ -70,9 +70,45 @@ jobs:
             set -euo pipefail
             cd ~/two_tire_application
 
+            # --- Ensure Docker, Compose plugin and AWS CLI are present (idempotent) ---
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "Installing Docker..."
+              if command -v dnf >/dev/null 2>&1; then sudo dnf install -y docker;
+              elif command -v yum >/dev/null 2>&1; then sudo yum install -y docker;
+              elif command -v apt-get >/dev/null 2>&1; then sudo apt-get update -y && sudo apt-get install -y docker.io;
+              fi
+              sudo systemctl enable --now docker
+            fi
+
+            if ! sudo docker compose version >/dev/null 2>&1; then
+              echo "Installing Docker Compose plugin..."
+              if command -v dnf >/dev/null 2>&1; then sudo dnf install -y docker-compose-plugin || true;
+              elif command -v apt-get >/dev/null 2>&1; then sudo apt-get install -y docker-compose-plugin || true;
+              fi
+              # Fallback: install the plugin system-wide so 'sudo docker compose' works.
+              if ! sudo docker compose version >/dev/null 2>&1; then
+                sudo mkdir -p /usr/local/lib/docker/cli-plugins
+                sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+                  -o /usr/local/lib/docker/cli-plugins/docker-compose
+                sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+              fi
+            fi
+
+            if ! command -v aws >/dev/null 2>&1; then
+              echo "Installing AWS CLI v2..."
+              if command -v dnf >/dev/null 2>&1; then sudo dnf install -y unzip || true;
+              elif command -v apt-get >/dev/null 2>&1; then sudo apt-get install -y unzip || true;
+              fi
+              curl -SL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+              unzip -oq /tmp/awscliv2.zip -d /tmp
+              sudo /tmp/aws/install --update
+              rm -rf /tmp/aws /tmp/awscliv2.zip
+            fi
+
             # Authenticate to ECR using the instance's IAM role.
+            # Use sudo for docker so this works before the docker group is active.
             aws ecr get-login-password --region "$AWS_REGION" \
-              | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+              | sudo docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
             # Write the .env that docker-compose.deploy.yml reads.
             cat > .env <<EOF
@@ -88,9 +124,9 @@ jobs:
             chmod 600 .env
 
             # Pull the new image and roll out.
-            docker compose -f docker-compose.deploy.yml pull
-            docker compose -f docker-compose.deploy.yml up -d
-            docker image prune -f
+            sudo docker compose -f docker-compose.deploy.yml pull
+            sudo docker compose -f docker-compose.deploy.yml up -d
+            sudo docker image prune -f
 
             echo "Waiting for the app to become healthy..."
             for i in $(seq 1 20); do
@@ -102,5 +138,5 @@ jobs:
               sleep 5
             done
             echo "App did not become healthy. Recent logs:"
-            docker compose -f docker-compose.deploy.yml logs --tail=50
+            sudo docker compose -f docker-compose.deploy.yml logs --tail=50
             exit 1
