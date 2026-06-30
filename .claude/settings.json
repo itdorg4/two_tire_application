@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -q -m 'Bump sonarqube-scan-action to v6 \\(security + Node 24\\) *)"
+    ]
+  }
+}
