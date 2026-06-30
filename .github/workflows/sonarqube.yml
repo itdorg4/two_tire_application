@@ -55,6 +55,7 @@ jobs:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
           args: >
+            -Dsonar.projectKey=${{ secrets.PROJECT_KEY }}
             -Dsonar.qualitygate.wait=true
 
   # ---------------------------------------------------------------------------
