@@ -6,7 +6,10 @@
       "Bash(git commit -q -m 'Wire app/DB secrets into CI and add integration test *)",
       "Bash(GIT_SSH_COMMAND='ssh -o BatchMode=yes' gh repo view itdorg4/two_tire_application --json visibility,isPrivate)",
       "Bash(git commit -q -m 'Hardcode confirmed sonar.projectKey, drop PROJECT_KEY secret *)",
-      "Bash(gh secret *)"
+      "Bash(gh secret *)",
+      "Bash(git commit -q -m 'Don'\\\\''t fail CI on SonarCloud Quality Gate *)",
+      "Bash(git commit -q -m 'Add ECR push job \\(OIDC, main only\\) *)",
+      "Bash(git commit -q --allow-empty -m 'ci: trigger run to validate ECR push *)"
     ]
   }
 }
